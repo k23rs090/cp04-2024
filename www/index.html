@@ -11,224 +11,216 @@
   <link rel="stylesheet" href="lib/onsenui/css/onsen-css-components.css">
   <link rel="stylesheet" href="css/style.css">
   <style>
+    /* 背景色を薄緑に変更 */
+    body {
+      background-color: lightgreen;
+    }
 
+    #datetime {
+      color: #333;
+      font-size: 24px;
+      text-align: center;
+      position: absolute;
+      top: 20px;
+      left: 10px;
+      right: 10px;
+    }
+
+    #remain {
+      color: #ff0000;
+      font-size: 40px;
+      text-align: center;
+      position: absolute;
+      top: 100px;
+      left: 10px;
+      right: 10px;
+    }
+
+    #time {
+      color: #ff0000;
+      font-size: 40px;
+      text-align: center;
+      position: absolute;
+      top: 170px;
+      left: 10px;
+      right: 10px;
+    }
+
+    #startButton {
+      font-size: 20px;
+      position: absolute;
+      top: 250px;
+      left: 2%;
+      width: 30%;
+      height: 60px;
+    }
+
+    #stopButton {
+      font-size: 20px;
+      position: absolute;
+      top: 250px;
+      left: 35%;
+      width: 30%;
+      height: 60px;
+    }
+
+    #resetButton {
+      font-size: 10px;
+      position: absolute;
+      top: 250px;
+      left: 70%;
+      width: 28%;
+      height: 60px;
+    }
+
+    #modeButton {
+      font-size: 20px;
+      position: absolute;
+      top: 330px;
+      left: 2%;
+      width: 96%;
+      height: 60px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #minute {
+      font-size: 30px;
+      position: absolute;
+      top: 400px;
+      left: 60px;
+      width: 80px;
+      height: 40px;
+    }
+
+    #second {
+      font-size: 30px;
+      position: absolute;
+      top: 400px;
+      left: 190px;
+      width: 80px;
+      height: 40px;
+    }
+
+    input[type=number] {
+      text-align: right;
+    }
   </style>
   <script>
-    // timer処理
-    $(function(){
-        setInterval(function(){
-            timer();
-        },500);
-    });  
-      
-    // ready クリックの処理の登録
-    $(function() { 
-        $('#date').click(function(e) {
-            setDebugMode(e);
-        });
-      
-        $('#btnA').click(function(e) {
-            btnAClick(e);
-        });
-
-        $('#btnB').click(function(e) {
-            btnBClick(e);
-        });
-
-        $('#btnC').click(function(e) {
-            btnCClick(e);
-        });
-        init();
-    });
-    
-    function rgbToColor(r,g,b){
-        return "#" + hex02(r)+hex02(g)+hex02(b);
-    }
-    
-    function hex02(x) {
-        var str = "0"+x.toString(16);
-        return str.substring(str.length-2);
-    }
-    
-    function decS2(x) {
-        if (x<10) {
-            return "&nbsp;"+x.toString(10);
-        } else { 
-            return x.toString(10);
-        }
-    }
-    
-    function dec02(x) {
-        var str = "0"+x.toString(10);
-        return str.substring(str.length-2);        
-    }
-
-    var debug = false;
-    // Statusがクリックされた時の処理
-    function setDebugMode(e){
-        debug = !debug;
-        $("#status").html("Debug Mode: "+debug);
-    }
-    
-    // 座標を計算
-    // getX(中心x座標,角度(1で一周),長さ(1で最大)
-    function getX(cx,d,r){
-        return cx + Math.sin(d*2*3.14)*cx*r;
-    }
-    // getY(中心y座標,角度(1で一周),長さ(1で最大)
-    function getY(cy,d,r){
-        return cy - Math.cos(d*2*3.14)*cy*r;
-    }
-    // 線を描く
-    // line(context,x1,y1,x2,y2,線の太さ,色)    
-    function line(ctx,x1,y1,x2,y2,width,color){
-        ctx.lineWidth = width; 
-        ctx.lineCap = "round"; 
-        ctx.strokeStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();        
-    }    
-    // 時計 clock(時, 分, 秒, 残り時間が短い時に不要な針を隠す)
-    function clock(hour,minute,second,hide){
-        var canvas = $('#mycanvas')[0];
-        var ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; 
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        var cx = canvas.width/2;
-        var cy = canvas.height/2;
-        var ds = second/60;
-        var dm = (minute+ds)/60;
-        var dh = (hour%12+dm)/12;
-
-        for(var i = 0; i < 60; i++) {
-            var px = getX(cx,i/60,0.9);
-            var py = getY(cy,i/60,0.9);
-            ctx.fillStyle = 'rgb(0, 255, 0)'; 
-            ctx.beginPath();
-            ctx.arc(px, py, 2, 0, Math.PI*2, false);
-            ctx.fill();
-        }
-        
-        for(var i = 0; i < 12; i++) {
-            var px = getX(cx,i/12,0.9);
-            var py = getY(cy,i/12,0.9);
-            ctx.fillStyle = 'rgb(255, 255, 0)'; 
-            ctx.beginPath();
-            ctx.arc(px, py, 5, 0, Math.PI*2, false);
-            ctx.fill();
-        }
-
-        if ((!hide) || hour > 0) {
-            var px = getX(cx,dh,0.4);
-            var py = getY(cy,dh,0.4);
-            line(ctx,cx,cy,px,py,20, 'rgb(255, 100, 162)')
-        }
-        if ((!hide) || hour > 0|| minute > 0) {
-            var px = getX(cx,dm,0.6);
-            var py = getY(cy,dm,0.6);
-            line(ctx,cx,cy,px,py,15, 'rgb(128, 255, 162)')
-        }
-        var px = getX(cx,ds,0.9);
-        var py = getY(cy,ds,0.9);
-        line(ctx,cx,cy,px,py,5, 'rgb(128, 100, 255)')
-    }
-
-    // 残り秒数アナログ表示
-    function analog(rest){
-        var h = parseInt(rest/3600);
-        var m = parseInt((rest-h*3600)/60);
-        var s = parseInt(rest-h*3600-m*60);
-        clock(h,m,s,true);
-
-    }
-
-
-
-// これより上は編集しなくて良い
-
-
-    // 変数宣言
     var active = false;
     var startTime = 0;
     var period = 0;
     var rest = 0;
     var etime = 0;
+    var countDownMode = true; // デフォルトはカウントダウン
 
-    
-    // ボタンの初期設定
-    function init(){
-        $('#btnA').prop('disabled', false);
-        $('#btnB').prop('disabled', false);
-        $('#btnC').prop('disabled', false);
-        
+    // timer処理
+    $(function(){
+        setInterval(function(){
+            timer();
+        },500);
+        setInterval(updateDateTime, 1000); // 日付と時間を1秒ごとに更新
+    });
+
+    // ready クリックの処理の登録
+    $(function() {
+        $('#startButton').click(function(e) {
+            btnAClick(e);
+        });
+
+        $('#stopButton').click(function(e) {
+            btnBClick(e);
+        });
+
+        $('#resetButton').click(function(e) {
+            btnCClick(e);
+        });
+
+        $('#modeButton').click(function(e) {
+            toggleMode(e);
+        });
+
+        init();
+    });
+
+    // 日付と時間を更新する関数
+    function updateDateTime() {
+        var now = new Date();
+        var dateString = now.getFullYear() + "年" + (now.getMonth() + 1) + "月" + now.getDate() + "日 " + now.getHours() + "時" + now.getMinutes() + "分" + now.getSeconds() + "秒";
+        document.getElementById("datetime").innerHTML = dateString;
     }
 
-    // Alarmの処理
-    function alarm(){
-        var canvas = $("#mycanvas")[0];
-        var ctx = canvas.getContext("2d");
-        var img = new Image();
-        img.src = "ksuisbg.gif";
-        img.onload = function(){
-            ctx.drawImage(img, 0, 0, 300, 300);
-        };
-
-        var audio = new Audio();
-        audio.src = "pin.wav";
-        audio.play();
+    // モード切替
+    function toggleMode(e) {
+        countDownMode = !countDownMode;
+        if (countDownMode) {
+            $("#modeButton").html("カウントダウンモード");
+        } else {
+            $("#modeButton").html("カウントアップモード");
+        }
     }
-    
-    // ButtonAがクリックされた時の処理
+
     function btnAClick(e){
         active = true;
         startTime = new Date();
     }
 
-    // ButtonBがクリックされた時の処理
     function btnBClick(e){
         active = false;
     }
 
-    // ButtonCがクリックされた時の処理
     function btnCClick(e){
-        alarm();
         active = false;
         period = 60*parseInt( $("#minute").val() ) + parseInt( $("#second").val() );
         $("#time").html("経過時間 : 0");
         $("#remain").html("残り時間 : " + period);
     }
-    
- 
+
     // 繰り返し実行する処理
     function timer(){  
         if(active){
             etime = parseInt( (new Date() - startTime)/1000 );
             rest = period - etime;
-            $("#time").html("経過時間 : " + etime);
-            $("#remain").html("残り時間 : " + rest);
-            analog(rest);
-        if(rest<=0){
-            active = false;
-            alarm();
-        }
-    } 
-}
+            if (countDownMode) {
+                $("#remain").html("残り時間 : " + (rest > 0 ? rest : 0));
+            } else {
+                $("#remain").html("経過時間 : " + etime);
+            }
 
+            if (countDownMode && rest <= 0) {
+                active = false;
+                alarm();
+            }
+        }
+    }
+
+    function alarm(){
+        var audio = new Audio();
+        audio.src = "pin.wav";
+        audio.play();
+    }
+
+    function init(){
+        $('#startButton').prop('disabled', false);
+        $('#stopButton').prop('disabled', false);
+        $('#resetButton').prop('disabled', false);
+        $('#modeButton').html("カウントダウンモード");
+    }
   </script>
 </head>
 <body>
-    <canvas id="mycanvas" width="200" height="200">Test</canvas>
-
-    <div id="minuteStr">〇</div>
-    <div id="secondStr">〇</div>
-
-    <div id="remain">Remaining time</div>
-    <div id="time">Time</div>
-    <button id="btnA">ButtonA</button>  
-    <button id="btnB">ButtonB</button>  
-    <button id="btnC">ButtonC</button>  
+    <div id="datetime">2024年10月25日 12:30</div> <!-- 現在の日付と時間を表示 -->
+    <div id="remain">残り時間 : 120</div>
+    <div id="time">経過時間 : 0</div>
+    
+    <!-- ボタンの名前をわかりやすく変更 -->
+    <button id="startButton">スタート</button>  
+    <button id="stopButton">ストップ</button>  
+    <button id="resetButton">リセット</button>  
+    <button id="modeButton">カウントダウンモード</button> <!-- モード切替ボタン -->
+    
     <input type="number" id="minute" value=3 >
     <input type="number" id="second" value=0 >
 </body>
